@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analisis de precios</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análisis de todos los {{ marca }} {{ modelo }} {{ anio }} publicados en ML:</h1>
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">General Information</h5>
+            <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
+            <p class="card-text">Unidades publicadas: {{ cantidad }}</p>
+
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Estadisticas</h5>
+            <p class="card-text">Precios (en pesos):</p>
+            <ul>
+                <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</p>
+                <li>Mediana: ${{  "{:,.0f}".format(precio_med) }}</p>
+            </ul>
+            <p class="card-text">Los precios Normales están entre:</p>
+            <ul>
+                <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</p>
+                <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</p>
+            </ul>
+            <p class="card-text">Kilómetros:</p>
+            <ul>
+                <li>Promedio: {{  "{:,.0f}".format(kms_mean)  }}</p>
+                <li>Mediana: {{  "{:,.0f}".format(kms_med)  }}</p>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Valores predecidos</h5>
+            <ul>
+                <li>Precio predecido con Tree Regressor: ${{  "{:,.0f}".format(ypred1)  }}</p>
+                <li>Precio predecido con Random Forest Regressor: ${{ "{:,.0f}".format(ypred2)  }}</p>
+            </ul>
+        </div>
+    </div>
+    <div class="card"></div>
+        <div class="card-body">
+            <h5 class="card-title">Plot</h5>
+            <img src="{{plot_path}}" alt="Plot Image">
+        </div>
+    </div>
+    {% if not DBautosbaratos.empty and not DBbuenprecioxkm.empty %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Extras</h5>
+                {% if not DBautosbaratos.empty %}
+                    <p class="card-text">Autos oportunidad:</p>
+                    {{ DBautosbaratos.to_html(classes="table table-striped", index=False)|safe }}
+                    <p class="card-text">Revisar ya que podrían estar mal publicados con el precio del anticipo</p>
+                {% endif %}
+            
+                {% if not DBbuenprecioxkm.empty %}
+                    <p class="card-text">Autos buen precio x km:</p>
+                    {{ DBbuenprecioxkm.to_html(classes="table table-striped", index=False)|safe }}
+                    <p class="card-text">Revisar si no tiene un número irreal de kilómetros</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}    
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Model Performance</h5>
+            <p class="card-text">Tree Regressor RMSE: {{ "{:,.2f}".format(rmse1)  }}</p>
+            <p class="card-text">Tree Regressor R2: {{ "{:,.3f}".format(r2_score1) }}</p>
+            <p class="card-text">Random Forest RMSE: {{ "{:,.2f}".format(rmse2) }}</p>
+            <p class="card-text">Random Forest R2: {{ "{:,.3f}".format(r2_score2) }}</p>
+        </div>
+    </div>
+</body>
+</html>
+
