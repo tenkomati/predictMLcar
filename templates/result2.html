@@ -6,12 +6,43 @@
     <style>
         body {
             padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #eed130;
         }
         h1 {
             margin-bottom: 30px;
+            text-align: center;
+            color: #333333;
+            margin-top: 30px;
         }
         .card {
             margin-bottom: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dbdbdb;
+            border-radius: 5px;
+            box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.1);
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333333;
+        }
+        .card-text {
+            margin-bottom: 10px;
+            color: #333333;
+        }
+        ul {
+            margin-bottom: 10px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
@@ -19,7 +50,7 @@
     <h1>Análisis de todos los {{ marca }} {{ modelo }} {{ anio }} publicados en ML:</h1>
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">General Information</h5>
+            <h5 class="card-title">Información general</h5>
             <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
             <p class="card-text">Unidades publicadas: {{ cantidad }}</p>
 
@@ -89,6 +120,7 @@
             <p class="card-text">Random Forest R2: {{ "{:,.3f}".format(r2_score2) }}</p>
         </div>
     </div>
+    <div class="credit">By Matias Sanchez - Version BETA 0.8</div>
 </body>
 </html>
 

@@ -73,7 +73,11 @@ target/
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
+# CSV
+.csv
 
+# image
+.png
 
 # Mac OS-specific storage files
 .DS_Store
