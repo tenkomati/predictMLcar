@@ -7,18 +7,19 @@ Project Organization
 ------------
 
     ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
+    ├── Makefile           <- Makefile with commands
     ├── README.md          <- The top-level README for developers using this project.
     ├── data
-    │   └── raw            <- The original, immutable data dump.
+    │   └── raw            <- csv generated files
     ├── static             <- generated graphics with matplotlib 
     ├── templates          <- html code
     ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
     │                         generated with `pip freeze > requirements.txt`
-    │
+    ├── Dockerfile         <- Docker file
+    ├── app.py             <- THE CODE
+    ├── functions.py       <- Functions used in the code
     ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+    
 
 
 --------
