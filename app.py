@@ -13,18 +13,15 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
-import math
+from functions import cleanup_csv_files, round_next
 import os
 
 
 
-def round_next(num):
-    next_num = math.ceil(num*10)/10
-    if next_num - num < 0.1:
-        return round(next_num, 1)
-    else:
-        return round(num, 1)
 
+
+# Call the cleanup function for CSV files
+cleanup_csv_files('./data/raw/')
 
 app = Flask(__name__)
 
