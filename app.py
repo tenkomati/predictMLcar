@@ -340,7 +340,7 @@ def pred():
 
     # Crear el gráfico usando Seaborn
     sns.set(style="whitegrid")
-    ax = sns.histplot(data=DBauto,x='precio',bins=20)
+    ax = sns.histplot(data=DBauto,x='precio')
     ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
     ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
     ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
