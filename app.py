@@ -253,10 +253,10 @@ def pred():
 
 
 
-    versionFREQ = DBautosinoutliers['version'].value_counts().rename_axis('version').reset_index(name='cantidad')
-    primero = versionFREQ.iloc[0,0]
-    segundo = versionFREQ.iloc[1,0]
-    tercero = versionFREQ.iloc[2,0]
+    #versionFREQ = DBautosinoutliers['version'].value_counts().rename_axis('version').reset_index(name='cantidad')
+    #primero = versionFREQ.iloc[0,0]
+    #segundo = versionFREQ.iloc[1,0]
+    #tercero = versionFREQ.iloc[2,0]
 
     #GENERA UN DB NUEVO PARA MODELAR
     Processedx = DBautosinoutliers[['motor','nafta','precio','kms','awd','manual']]
