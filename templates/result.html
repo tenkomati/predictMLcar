@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Analisis de precios</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
@@ -9,12 +10,14 @@
             font-family: Arial, sans-serif;
             background-color: #eed130;
         }
+
         h1 {
             margin-bottom: 30px;
             text-align: center;
             color: #333333;
             margin-top: 30px;
         }
+
         .card {
             margin-bottom: 20px;
             background-color: #ffffff;
@@ -22,27 +25,51 @@
             border-radius: 5px;
             box-shadow: 0px 0px 8px 0px rgba(0,0,0,0.1);
         }
+
         .card-body {
             padding: 20px;
         }
+
         .card-title {
             font-weight: bold;
             margin-bottom: 10px;
             color: #333333;
         }
+
         .card-text {
             margin-bottom: 10px;
             color: #333333;
         }
+
         ul {
             margin-bottom: 10px;
         }
+
         li {
             margin-bottom: 5px;
         }
+
         img {
             max-width: 100%;
             height: auto;
+        }
+
+        .credit {
+            text-align: center;
+            color: #999999;
+        }
+
+        /* Media queries for different screen sizes */
+        @media screen and (max-width: 576px) {
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        @media screen and (min-width: 577px) and (max-width: 768px) {
+            h1 {
+                font-size: 30px;
+            }
         }
     </style>
 </head>
@@ -53,7 +80,6 @@
             <h5 class="card-title">Información general</h5>
             <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
             <p class="card-text">Unidades publicadas: {{ cantidad }}</p>
-
         </div>
     </div>
 
@@ -62,37 +88,49 @@
             <h5 class="card-title">Estadisticas</h5>
             <p class="card-text">Precios (en pesos):</p>
             <ul>
-                <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</p>
-                <li>Mediana: ${{  "{:,.0f}".format(precio_med) }}</p>
+                <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</li>
+                <li>Mediana: ${{ "{:,.0f}".format(precio_med) }}</li>
             </ul>
             <p class="card-text">Los precios Normales están entre:</p>
             <ul>
-                <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</p>
-                <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</p>
+                <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</li>
+                <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</li>
             </ul>
             <p class="card-text">Kilómetros:</p>
             <ul>
-                <li>Promedio: {{  "{:,.0f}".format(kms_mean)  }}</p>
-                <li>Mediana: {{  "{:,.0f}".format(kms_med)  }}</p>
+                <li>Promedio: {{ "{:,.0f}".format(kms_mean) }}</li>
+                <li>Mediana: {{ "{:,.0f}".format(kms_med) }}</li>
             </ul>
         </div>
     </div>
-
+    {% if tamanioDB > 10 %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Valores predecidos</h5>
             <ul>
-                <li>Precio predecido con Tree Regressor: ${{  "{:,.0f}".format(ypred1)  }}</p>
-                <li>Precio predecido con Random Forest Regressor: ${{ "{:,.0f}".format(ypred2)  }}</p>
+                <li>Precio predecido con Tree Regressor: ${{ "{:,.0f}".format(ypred1) }}</li>
+                <li>Precio predecido con Random Forest Regressor: ${{ "{:,.0f}".format(ypred2) }}</li>
+                <li>Precio predecido con KNN Regressor: ${{ "{:,.0f}".format(ypred3) }}</li>
+                <li>Precio predecido con Linear Regressor: ${{ "{:,.0f}".format(ypred4) }}</li>
             </ul>
         </div>
     </div>
-    <div class="card"></div>
+    {% else %}
+    <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Plot</h5>
+            <h5 class="card-title">Pocos resultados para predecir</h5>
+            <p class="card-text">Se han encontrado muy pocos resultados para generar una predicción correcta.</p>
+            <p class="card-text">Se recomienda basarse en el promedio, los kms de la unidad y su estado general. </p>
+        </div>
+    </div>
+    {% endif %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Grafica de precios vs unidades publicadas</h5>
             <img src="{{plot_path}}" alt="Plot Image">
         </div>
     </div>
+
     {% if not DBautosbaratos.empty and not DBbuenprecioxkm.empty %}
         <div class="card">
             <div class="card-body">
@@ -102,7 +140,6 @@
                     {{ DBautosbaratos.to_html(classes="table table-striped", index=False)|safe }}
                     <p class="card-text">Revisar ya que podrían estar mal publicados con el precio del anticipo</p>
                 {% endif %}
-            
                 {% if not DBbuenprecioxkm.empty %}
                     <p class="card-text">Autos buen precio x km:</p>
                     {{ DBbuenprecioxkm.to_html(classes="table table-striped", index=False)|safe }}
@@ -110,17 +147,17 @@
                 {% endif %}
             </div>
         </div>
-    {% endif %}    
+    {% endif %}
+    {% if tamanioDB > 10 %}
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Model Performance</h5>
-            <p class="card-text">Tree Regressor RMSE: {{ "{:,.2f}".format(rmse1)  }}</p>
-            <p class="card-text">Tree Regressor R2: {{ "{:,.3f}".format(r2_score1) }}</p>
-            <p class="card-text">Random Forest RMSE: {{ "{:,.2f}".format(rmse2) }}</p>
-            <p class="card-text">Random Forest R2: {{ "{:,.3f}".format(r2_score2) }}</p>
+            {{ performance.to_html(classes="table table-striped")|safe }}
         </div>
     </div>
-    <div class="credit">By Matias Sanchez - Version BETA 0.8</div>
+    {% endif %}
+    <div class="credit">By Matias Sanchez - Version BETA 0.9</div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-

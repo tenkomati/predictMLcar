@@ -64,28 +64,17 @@
         .label-option-container label {
             margin-right: 10px;
         }
+
+        /* Responsive Styles */
+        @media only screen and (max-width: 600px) {
+            form {
+                max-width: 100%;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
-      
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyBdmvk9bIh2pGBpPUxXAE439YWtjvH3Ooc",
-          authDomain: "predictor-precios-autos.firebaseapp.com",
-          projectId: "predictor-precios-autos",
-          storageBucket: "predictor-precios-autos.appspot.com",
-          messagingSenderId: "1033872475792",
-          appId: "1:1033872475792:web:eeb129436c810fdb69fa15"
-        };
-      
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-    </script>
     <h1>Car Price Predictor</h1>
     <form action="/predict" method="post">
         <label for="make">Marca:</label>
@@ -94,37 +83,40 @@
         <label for="model">Modelo:</label>
         <input type="text" id="model" name="model" required>
 
-        <label for="year">Año:</label>
+        <label for="version">Version: (si no sabe enter)</label>
+        <input type="text" id="version" name="version">
+
+        <label for="year">Año: (No funciona bien con 0kms)</label>
         <input type="number" id="year" name="year" min="1900" max="2099" required>
 
-        <label for="kms">Kilometros:</label>
+        <label for="kms">Kilometros: (si no sabe enter)</label>
         <input type="number" id="kms" name="kms" min="0">
 
-        <label for="motor">Motor(ej 1.8):</label>
+        <label for="motor">Motor(ej 1.8): (si no sabe enter)</label>
         <input type="number" id="motor" name="motor" min="0" step="0.1">
         <div class="label-option-container">
-            <label for="nafta">Nafta:</label>
+            <label for="nafta">Combustible: (si no sabe enter)</label>
             <select id="nafta" name="nafta">
-                <option value=1>Yes</option>
-                <option value=0>No</option>
+                <option value=1>Nafta</option>
+                <option value=0>Otros</option>
             </select>
         </div>
         <div class="label-option-container">
-            <label for="awd">4x4(o AWD):</label>
+            <label for="awd">¿Es 4x4 o integral?: (si no sabe enter)</label>
             <select id="awd" name="awd">
-                <option value=1>Yes</option>
+                <option value=1>Si</option>
                 <option value=0>No</option>
             </select>
         </div>
         <div class="label-option-container">
-            <label for="manual">Manual:</label>
+            <label for="manual">Transmisión: (si no sabe enter)</label>
             <select id="manual" name="manual">
-                <option value=1>Yes</option>
-                <option value=0>No</option>
+                <option value=1>Manual</option>
+                <option value=0>Automatico-Secuencial</option>
             </select>
         </div>
         <input type="submit" value="Predict">
     </form>
-    <div class="credit">By Matias Sanchez - Version BETA 0.8</div>
+    <div class="credit">By Matias Sanchez - Version BETA 0.9</div>
 </body>
 </html>

@@ -50,6 +50,8 @@ coverage.xml
 # Django stuff:
 *.log
 
+#versiones viejas
+versiones_anteriores/
 
 # PyBuilder
 target/
@@ -74,10 +76,10 @@ target/
 .ipynb_checkpoints/
 
 # CSV
-.csv
+data/raw/*.csv
 
 # image
-.png
+static/*.png
 
 # Mac OS-specific storage files
 .DS_Store

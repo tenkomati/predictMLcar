@@ -11,10 +11,14 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import seaborn as sns
 from functions import cleanup_csv_files, round_next
 import os
+from thefuzz import fuzz
 
 
 
@@ -33,26 +37,60 @@ def home():
 # Define the route for car price prediction form submission
 @app.route('/predict', methods=['POST'])
 def pred():
-    # Retrieve form data
-    marca = request.form['make']
-    modelo = str(request.form['model'])
+    # INPUTS REQUERIDOS
+    marca = str(request.form['make']).lower().strip()
+    modelo = str(request.form['model']).lower().strip()
     anio = request.form['year']
 
-    naft = int(request.form["nafta"])
-    km = int(request.form["kms"])
-    motr = float(request.form["motor"])
-    aw = int(request.form["awd"])
-    manua = request.form["manual"]      
+    # INPUTS NO REQUERIDOS
+    versions = str(request.form['version']).lower().strip()
+
+    motr = request.form["motor"]
+    try:
+        motr = float(motr)
+    except ValueError:
+        motr = None
+
+    naft = request.form["nafta"]
+    try:
+        naft= int(naft)
+    except ValueError:
+        naft = None
+
+    km = request.form["kms"]
+    try:
+        km = int(km)
+    except ValueError:
+        km = None
+        
+    aw = request.form["awd"]
+    try:
+        aw = int(aw)
+    except ValueError:
+        aw = None
+
+    manua = request.form["manual"]
+    try:
+        manua = int(manua)
+    except ValueError:
+        manua = None
 
 
-    #reemplazar espacios
-    marca = marca.replace(" ","%20")
-    modelo = modelo.replace(" ","%20")
-    anio = anio.strip()
+  
 
 
+# Create DataFrame
+    data = {
+        'motor': [motr],
+        'nafta': [naft],
+        'kms': [km],
+        'awd': [aw],
+        'manual': [manua]
+    }
+    DatosPredecir = pd.DataFrame(data)
 
-    url = str('https://api.mercadolibre.com/sites/MLA/search?q=' + marca + "%20" + modelo + "%20" + anio +'&category=MLA1743&id=MLA1744') 
+#API REQUESTS
+    url = str('https://api.mercadolibre.com/sites/MLA/search?q=' + marca + "%20" + modelo + "%20" + versions + "%20" + (str(anio)).strip() +'&category=MLA1743&id=MLA1744') 
     payload = {}
     headers = {
     'Authorization': 'Bearer APP_USR-1735483845190568-052521-4e03162aa48b46d277ba15d55d6a2357-224513779'
@@ -68,14 +106,15 @@ def pred():
 
     #Extrae info
     cantidad = Jsonpage['paging']['total']
-    #print('cantidad: '+str(cantidad))
+    if cantidad >= 1000:
+            cantidad = 999
     list = Jsonpage['results']
 
 
     #GENERA EL ARCHIVO CSV
-    with open(str('./data/raw/'+marca+'_'+modelo+'_'+anio+'.csv'),'w',encoding='utf8',newline='') as f:
+    with open(str('./data/raw/'+marca+'_'+modelo+'_'+versions+'_'+anio+'.csv'),'w',encoding='utf8',newline='') as f:
         thewriter = writer(f)
-        header = ['marca','modelo','version', 'motor','nafta','precio','moneda', 'anio', 'kms','awd', 'manual','id ml', 'link']
+        header = ['marca','modelo','version', 'motor','nafta','precio','moneda', 'año', 'kms','awd', 'manual','id ml', 'link']
         thewriter.writerow(header)
         cantidadrow=0
         for i in list:
@@ -85,6 +124,8 @@ def pred():
                 for k in i['attributes']:
                     if k['id'] == 'VEHICLE_YEAR':
                         aniox = k['value_name']
+                    elif k['id'] == 'MODEL':
+                        model = str(k['value_name']).lower()
                     elif k['id'] == 'KILOMETERS':
                         kms = k['value_name']
                     elif k['id'] == 'TRIM':
@@ -107,7 +148,7 @@ def pred():
                         else:
                             manual = 0
                 href = i['permalink']
-                info = [marca, modelo, version, motor ,nafta, precio, moneda, aniox, kms, awd, manual, mlid, href]
+                info = [marca, model, version, motor ,nafta, precio, moneda, aniox, kms, awd, manual, mlid, href]
                 thewriter.writerow(info)
                 cantidadrow += 1
 
@@ -124,6 +165,8 @@ def pred():
                 for k in i['attributes']:
                     if k['id'] == 'VEHICLE_YEAR':
                         aniox = k['value_name']
+                    elif k['id'] == 'MODEL':
+                        model = str(k['value_name']).lower()
                     elif k['id'] == 'KILOMETERS':
                         kms = k['value_name']
                     elif k['id'] == 'TRIM':
@@ -146,7 +189,7 @@ def pred():
                         else:
                             manual = 0
                 href = i['permalink']
-                info = [marca, modelo, version, motor,nafta, precio, moneda, aniox, kms, awd, manual, mlid, href]
+                info = [marca, model, version, motor ,nafta, precio, moneda, aniox, kms, awd, manual, mlid, href]
                 thewriter.writerow(info)
                 cantidadrow += 1
 
@@ -165,50 +208,45 @@ def pred():
 
 
     #GENERATE Dataframe
-    DBauto = pd.read_csv('data/raw/'+marca+'_'+modelo+'_'+anio+'.csv')
-    #cantidad = str(len(DBauto))
+    DBauto = pd.read_csv('./data/raw/'+marca+'_'+modelo+'_'+versions+'_'+anio+'.csv')
+    
 
     #CLEAN AND TRANSFORM FEATURES
 
+    #elimina otros años
+    DBauto = DBauto[DBauto['año'] == int(anio)]
+
+    #crea col para comparar modelo vs model
+    DBauto['m%'] = DBauto['modelo'].apply(lambda x: fuzz.ratio(x,modelo))
+
+    #elimina otros modelos
+    DBauto = DBauto[DBauto['m%'] > 80]
+
+    #reset index porque generaba problemas al buscar por filas inexistentes
+    DBauto.reset_index(inplace=True)
+
     #KMS texto a int
-    #DBauto['kms'] = DBauto['kms'].str.replace(" km","").str.extract('(\d+)').astype(int)
     DBauto['kms'] = DBauto['kms'].str.extract('(\d+)').astype(int)
 
 
     #PRECIO dolares a pesos
-    for i in range(len(DBauto)):
-        x = int(DBauto.loc[i,'precio'])
-        if DBauto.loc[i,'moneda'] == 'USD':
-            DBauto.loc[i,'precio'] = x*dolarhoy
-            DBauto.loc[i,'moneda'] = 'ARS'
-
-
-    '''
-    #VERSION
-    DBauto['version'] = DBauto['version'].str.lower()
-
-    #busca si existe el volumen del  motor y genera una nueva columna con ese valor para constatar vs motor
-    pattern = re.compile(r'\d+\.\d+') # This regular expression matches a string containing a number followed by a dot and another number.
-    for i in range(len(DBauto)):
-        version = str(DBauto.iloc[i]["version"]) # Convert the version to a string just in case.
-        if pattern.findall(version): # Check if the pattern exists in the version string.
-            DBauto.loc[i,'v'] = float(pattern.findall(version)[0])
-        else:
-            DBauto.loc[i,'v'] = 0
-    '''
+    for i,row in DBauto.iterrows():
+            x = int(row['precio'])
+            if row['moneda'] == 'USD':
+                    DBauto.at[i,'precio'] = x*dolarhoy
+                    DBauto.at[i,'moneda'] = 'ARS'
 
 
     #MOTOR
     DBauto['motor'] = DBauto['motor'].str.extract('(\d+(?:\.\d+)?)').astype(float)
-    for i in range(len(DBauto)):
-        if DBauto.loc[i,'motor'] > 12.0: #looking for engines in cc and convert to litres
-            DBauto.loc[i,'motor'] = (DBauto.loc[i,'motor'] / 1000)
-            DBauto.loc[i,'motor'] = round_next(DBauto.loc[i,'motor']) #round for the next float with one decimal
+    for i,row in DBauto.iterrows():
+            if row['motor'] > 12.0:         #busca motores en cc y conviertes a litros
+                    DBauto.at[i,'motor'] = round_next(DBauto.at[i,'motor'] / 1000)  #redondea al proximo decimal y si tiene unidades en el segundo a tercer decimal lo redondea para arriba
 
     #FEATURE ENGINEER
     #precio x km
     DBauto['precioxkm'] = DBauto['precio']/DBauto['kms']
-    DBauto = DBauto.sort_values(by=['precioxkm'],ascending=True)
+    #DBauto = DBauto.sort_values(by=['precioxkm'],ascending=True)
 
 
     #STATS
@@ -218,140 +256,202 @@ def pred():
     iqr = q3 - q1
 
     #cutoff outliers de precio
-    lower = q1-1.5*iqr
+    if (q1-1.5*iqr) < 0:
+            lower = 0
+    else:
+            lower = q1-1.5*iqr
     upper = q3+1.5*iqr
 
-
+    #DB solo de los autos entre precios normales de lower y upper
     DBautosinoutliers = DBauto[(DBauto['precio'] >= lower) & (DBauto['precio'] <= upper)]
 
+    #Autos baratos por precio
+    DBautosbaratos = DBauto[(DBauto['precio'] < lower)]
+    DBautosbaratos = DBautosbaratos[['version','motor','precio','kms','precioxkm','link']]
+
     #calculo cuantiles y iQR de PRECIO X KM
-    q11 = np.quantile(DBautosinoutliers['precioxkm'],0.25)
-    q33 = np.quantile(DBautosinoutliers['precioxkm'],0.75)
+    q11 = np.quantile(DBauto['precioxkm'],0.25)
+    q33 = np.quantile(DBauto['precioxkm'],0.75)
     iqr1 = q33 - q11
 
     #cutoff outliers de PRECIO X KM
-    lower1 = q11-iqr1
-
-    #Autos baratos x precio
-    DBautosbaratos = DBauto[(DBauto['precio'] < lower)]
-
+    if q11-iqr1 < 0:
+         lower1= q11
+    else:
+        lower1 = q11-iqr1
 
     #Autos baratos x precioxkm
-    DBbuenprecioxkm = DBautosinoutliers[(DBautosinoutliers['precioxkm'] <= lower1)].sort_values(by=['precio'],ascending=True)
+    DBbuenprecioxkm = DBauto[(DBauto['precioxkm'] <= lower1)].sort_values(by=['precioxkm'],ascending=True)
+    DBbuenprecioxkm = DBbuenprecioxkm[['version','motor','precio','kms','precioxkm','link']]
 
-
-    #PRINTS
-    
-    print('Estadisticas: \n')
     precio_mean = DBautosinoutliers['precio'].mean()
     precio_med = DBautosinoutliers['precio'].median()
     kms_mean = DBautosinoutliers['kms'].mean()
     kms_med = DBautosinoutliers['kms'].median()
 
+    #PRINTS
+    print("\n")
+    print('Analisis de todos los '+ marca +" "+ modelo +" "+version +" "+str(anio)+" publicadas en ML \n")
+    print("\n")
+    print('unidades publicadas: '+str(len(DBauto)))
+    print("\n")
+
+    #Versiones mas frecuentes segun la busqueda
+    versionFREQ = DBautosinoutliers['version'].value_counts().rename_axis('version').reset_index(name='cantidad')
+    print('Las 5 versiones mas comunes son')
+    print(versionFREQ.head(5))
+
+    print("Precio promedio {:,.0f}".format(precio_mean))
+    print("Precio mediano {:,.0f}".format(precio_med))
+    print("Kilometros promedio {:,.0f}".format(kms_mean))
+    print("Kilometros mediano {:,.0f}".format(kms_med))
+
+    tamanioDB = len(DBautosinoutliers)
+
+    if tamanioDB > 10:
+                
+            #GENERA UN DB NUEVO PARA MODELAR
+            Processedx = DBautosinoutliers[['motor','nafta','precio','kms','awd','manual']]
+
+            X = Processedx.drop('precio',axis=1)
+            y = Processedx['precio']
 
 
-    #versionFREQ = DBautosinoutliers['version'].value_counts().rename_axis('version').reset_index(name='cantidad')
-    #primero = versionFREQ.iloc[0,0]
-    #segundo = versionFREQ.iloc[1,0]
-    #tercero = versionFREQ.iloc[2,0]
 
-    #GENERA UN DB NUEVO PARA MODELAR
-    Processedx = DBautosinoutliers[['motor','nafta','precio','kms','awd','manual']]
-    #DBmodel.to_csv('./data/processed/DBmodel.csv',index=False)
+            # Split the data into train and test sets
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
-    X = Processedx.drop('precio',axis=1)
-    y = Processedx['precio']
+            # Define your pipeline
+            pipeline1 = Pipeline([
+                ('scaler', StandardScaler()),  # Optional: Scale features
+                ('regressor', DecisionTreeRegressor())  # Decision tree regressor
+            ])
+
+            pipeline2 = Pipeline([
+                ('scaler', StandardScaler()),  # Optional: Scale features
+                ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))  
+            ])
+            pipeline3 = Pipeline([
+                ('scaler', StandardScaler()),  #cRe escalado de columnas
+                ('regressor', KNeighborsRegressor(n_neighbors=5))  # Decision KNN regressor
+            ])
+
+            pipeline4 = Pipeline([
+                ('scaler', StandardScaler()),  #Re escalado de columnas
+                ('regressor', LinearRegression())  # Linear regressor
+            ])
+            # TRAIN
+            pipeline1.fit(X_train, y_train)
+            pipeline2.fit(X_train, y_train)
+            pipeline3.fit(X_train, y_train)
+            pipeline4.fit(X_train, y_train)
+
+            # PREDICT
+            y_pred1 = pipeline1.predict(X_test)
+            y_pred2 = pipeline2.predict(X_test)
+            try:
+                y_pred3 = pipeline3.predict(X_test)
+            except ValueError:
+                y_pred3 = 0
+            y_pred4 = pipeline4.predict(X_test)
+
+            # CALCULO DE METRICAS
+            print("\n")
+            print("Metricas de los 4 modelos utilizados")
+            print("\n")
+
+            rmse1 = mean_squared_error(y_test, y_pred1, squared=False)
+            print("Tree Regressor RMSE: ", rmse1)
+            r2_score1 = r2_score(y_test, y_pred1)
+            print("Tree Regressor R-Squared: ",r2_score1)
+            print("\n")
+
+            rmse2 = mean_squared_error(y_test, y_pred2, squared=False)
+            print("Random Forest RMSE: ", rmse2)
+            r2_score2 = r2_score(y_test, y_pred2)
+            print("Random Forest R-Squared: ",r2_score2)
+            print("\n")
+
+            rmse3 = mean_squared_error(y_test, y_pred3, squared=False)
+            print("KNN RMSE: ",rmse3)
+            r2_score3 = r2_score(y_test, y_pred3)
+            print("KNN R-Squared: ",r2_score3)
+            print("\n")
+
+            rmse4 = mean_squared_error(y_test, y_pred4, squared=False)
+            print("Linear Regressor RMSE: ", rmse4)
+            r2_score4 = r2_score(y_test, y_pred4)
+            print("Linear Regressor R-Squared: ",r2_score4)
+            print("\n")
+
+            performance = pd.DataFrame(data={'RMSE':[rmse1,rmse2,rmse3,rmse4],'R-Squared':[r2_score1,r2_score2,r2_score3,r2_score4]},index=["Tree Reg","RF Reg","Knn Reg","Linear Reg"])
+
+            #Si no se ingresaron datos para la prediccion se utiliza el promedio de kms y los valores de DBautosinoutliers
+            if DatosPredecir.loc[0,'awd'] == None:
+                DatosPredecir.loc[0,'awd'] = DBautosinoutliers['awd'].value_counts().index[0]
+            if DatosPredecir.loc[0,'kms'] == None:
+                DatosPredecir.loc[0,'kms'] = DBautosinoutliers['kms'].mean()
+            if DatosPredecir.loc[0,'manual'] == None:
+                DatosPredecir.loc[0,'manual'] = DBautosinoutliers['manual'].value_counts().index[0]
+            if DatosPredecir.loc[0,'motor'] == None:
+                DatosPredecir.loc[0,'motor'] = DBautosinoutliers['motor'].value_counts().index[0]
+            if DatosPredecir.loc[0,'nafta'] == None:
+                DatosPredecir.loc[0,'nafta'] = DBautosinoutliers['nafta'].value_counts().index[0]
+
+            
+
+            ypred1 = pipeline1.predict(DatosPredecir)
+            ypred2 = pipeline2.predict(DatosPredecir)
+            ypred3 = pipeline3.predict(DatosPredecir)
+            ypred4 = pipeline4.predict(DatosPredecir)
+
+            # Calcular los cuatro valores obtenidos por los modelos predictivos
+            valor_1 = int(ypred1[0])
+            valor_2 = int(ypred2[0])
+            valor_3 = int(ypred3[0])
+            valor_4 = int(ypred4[0])
 
 
-
-    # Split the data into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
-
-    # Define your pipeline
-    pipeline1 = Pipeline([
-        ('scaler', StandardScaler()),  # Optional: Scale features
-        ('regressor', DecisionTreeRegressor())  # Decision tree regressor
-    ])
-
-    pipeline2 = Pipeline([
-        ('scaler', StandardScaler()),  # Optional: Scale features
-        ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))  
-    ])
-    # Train your pipeline
-    pipeline1.fit(X_train, y_train)
-
-    pipeline2.fit(X_train, y_train)
-
-    # Make predictions
-    y_pred1 = pipeline1.predict(X_test)
-    y_pred2 = pipeline2.predict(X_test)
-
-    # Calculate metrics
-    rmse1 = mean_squared_error(y_test, y_pred1, squared=False)
-    print("Tree Regressor RMSE: ", rmse1)
-    r2_score1 = r2_score(y_test, y_pred1)
-    print("Tree Regressor R2: ",r2_score1)
-
-
-    rmse2 = mean_squared_error(y_test, y_pred2, squared=False)
-    print("Random Forest RMSE:", rmse2)
-    r2_score2 = r2_score(y_test, y_pred2)
-    print("Random Forest R2: ",r2_score2)
-
-    #def predecir(motor,nafta,kms,awd,manual):
-            # Create DataFrame
-    data = {
-        'motor': [motr],
-        'nafta': [naft],
-        'kms': [km],
-        'awd': [aw],
-        'manual': [manua]
-    }
-    df = pd.DataFrame(data)
-
-    #Si no se ingresaron datos para la prediccion se utiliza el promedio de kms y los valores de DBautosinoutliers
-    if df.loc[0,'awd'] == None:
-        df.loc[0,'awd'] = DBautosinoutliers['awd'].value_counts().index[0]
-    if df.loc[0,'kms'] == None:
-        df.loc[0,'kms'] = DBautosinoutliers['kms'].mean()
-    if df.loc[0,'manual'] == None:
-        df.loc[0,'manual'] = DBautosinoutliers['manual'].value_counts().index[0]
-    if df.loc[0,'motor'] == None:
-        df.loc[0,'motor'] = DBautosinoutliers['motor'].value_counts().index[0]
-    if df.loc[0,'nafta'] == None:
-        df.loc[0,'nafta'] = DBautosinoutliers['nafta'].value_counts().index[0]
-
-    
-
-    ypred1 = pipeline1.predict(df)
-    ypred2 = pipeline2.predict(df)
-    print('precio predecido con treee model: ', ypred1)
-    print('precio predecido con rforest: ', ypred2)
-
-    # Calcular los cuatro valores obtenidos por los modelos predictivos
-    valor_1 = int(ypred1[0])
-    valor_2 = int(ypred2[0])
-    #valor_3 = int(ypred3[0])
-    #valor_4 = int(ypred4[0])
-
-
-    # Crear el gráfico usando Seaborn
-    sns.set(style="whitegrid")
-    ax = sns.histplot(data=DBauto,x='precio')
-    ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
-    ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
-    ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
-    ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
-    ax.axvline(valor_1, color='green', linestyle='-', label='TreeRegressor')
-    ax.axvline(valor_2, color='blue', linestyle='-', label='RandomForest')
-    #ax.axvline(valor_3, color='purple', linestyle='-', label='KNN')
-    #ax.axvline(valor_4, color='brown', linestyle='-', label='LinearRegression')
+            # Crear el gráfico usando Seaborn
+            sns.set(style="whitegrid")
+            ax = sns.histplot(data=DBauto,x='precio')
+            ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
+            ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
+            ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
+            ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
+            ax.axvline(valor_1, color='green', linestyle='-', label='TreeRegressor')
+            ax.axvline(valor_2, color='blue', linestyle='-', label='RandomForest')
+            ax.axvline(valor_3, color='purple', linestyle='-', label='KNN')
+            ax.axvline(valor_4, color='brown', linestyle='-', label='LinearRegression')
+    else:
+            ypred1=[0]
+            ypred2=[0]
+            ypred3=[0]
+            ypred4=[0]
+            rmse1=0
+            r2_score1=0
+            rmse2=0
+            r2_score2=0
+            rmse3=0
+            r2_score3=0
+            rmse4=0
+            r2_score4=0
+            performance=0
+            sns.set(style="whitegrid")
+            ax = sns.histplot(data=DBauto,x='precio')
+            ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
+            ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
+            ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
+            ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}$'.format(x / 1000000)))
+    ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
     plt.tight_layout()
     # Añadir leyenda
     ax.legend(loc='upper left',bbox_to_anchor=(1, 1.1))
 
     ax.set(xlim=(lower*0.95, upper*1.05))
     plt.ylabel('Cantidad')
+    plt.xlabel('Precio(en millones $)')
     plt.title(marca+" "+modelo+" "+str(anio)+" en ML")
 
     # Mostrar el gráfico
@@ -362,8 +462,9 @@ def pred():
 
 
     # Render the prediction result template with the predicted price
-    return render_template('result2.html',
+    return render_template('result.html',
                 cantidad=cantidad,
+                tamanioDB=tamanioDB,
                 dolarhoy=dolarhoy,
                 marca=marca,
                 modelo=modelo,
@@ -376,13 +477,20 @@ def pred():
                 kms_med=kms_med,
                 ypred1=ypred1[0],
                 ypred2=ypred2[0],
+                ypred3=ypred3[0],
+                ypred4=ypred4[0],
                 DBautosbaratos=DBautosbaratos,
                 DBbuenprecioxkm=DBbuenprecioxkm,
                 rmse1=rmse1,
                 r2_score1=r2_score1,
                 rmse2=rmse2,
                 r2_score2=r2_score2,
-                plot_path=temp_file
+                rmse3=rmse3,
+                r2_score3=r2_score3,
+                rmse4=rmse4,
+                r2_score4=r2_score4,
+                plot_path=temp_file,
+                performance=performance
                 )
 
 
