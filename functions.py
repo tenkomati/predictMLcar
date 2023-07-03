@@ -2,6 +2,35 @@ import os
 import time
 from datetime import datetime, timedelta
 import math
+import csv
+
+
+def load_car_models():
+    car_models = {}
+    with open('./data/modelosmarcas.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            marca = row[3]
+            modelo = row[1]
+            if marca in car_models:
+                car_models[marca].append(modelo)
+            else:
+                car_models[marca] = [modelo]
+    car_models.pop('marca')
+    return car_models
+
+def get_marcas():
+    marcas = []
+    with open('./data/marcas.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            marca = row[1]
+            if marca not in marcas:
+                marcas.append(marca)
+        marcas[0] = 'ingrese un valor'
+    return marcas
+
+
 
 # Function to delete CSV files older than one day
 def cleanup_csv_files(directory):

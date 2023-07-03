@@ -91,15 +91,15 @@
                 <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</li>
                 <li>Mediana: ${{ "{:,.0f}".format(precio_med) }}</li>
             </ul>
-            <p class="card-text">Los precios Normales están entre:</p>
+            <p class="card-text">Los precios normales están entre:</p>
             <ul>
                 <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</li>
                 <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</li>
             </ul>
-            <p class="card-text">Kilómetros:</p>
+            <p class="card-text">La cantidad de kilómetros normales son:</p>
             <ul>
-                <li>Promedio: {{ "{:,.0f}".format(kms_mean) }}</li>
-                <li>Mediana: {{ "{:,.0f}".format(kms_med) }}</li>
+                <li>Promedio: {{ "{:,.0f}".format(kms_mean) }} kms</li>
+                <li>Mediana: {{ "{:,.0f}".format(kms_med) }} kms</li>
             </ul>
         </div>
     </div>
@@ -128,6 +128,7 @@
         <div class="card-body">
             <h5 class="card-title">Grafica de precios vs unidades publicadas</h5>
             <img src="{{plot_path}}" alt="Plot Image">
+            <p class="card-text">En este grafico se muestra cuantos autos hay publicados en cada valor.</p>
         </div>
     </div>
 
@@ -148,11 +149,23 @@
             </div>
         </div>
     {% endif %}
+    
+    {% if not versionFREQ.empty %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Versiones más publicadas</h5>
+                    {{ versionFREQ.to_html(classes="table table-striped")|safe }}
+            </div>
+        </div>
+    {% endif %}
+
     {% if tamanioDB > 10 %}
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Model Performance</h5>
+            <h5 class="card-title">Performance de cada modelo</h5>
             {{ performance.to_html(classes="table table-striped")|safe }}
+            <p class="card-text">RMSE: El RMSE se expresa en la misma unidad que los valores de la variable objetivo y se interpreta como el error típico o la diferencia promedio entre las predicciones del modelo y los valores reales. Es una métrica comúnmente utilizada en problemas de regresión y pronóstico para evaluar la calidad y precisión del modelo.valores más bajos indican una mayor precisión y valores más altos indican una mayor discrepancia entre las predicciones y los valores reales.</p>
+            <p class="card-text">R²: Un valor de R² cercano a 1 indica un buen ajuste del modelo a los datos, lo que significa que una gran proporción de la variabilidad de la variable dependiente está siendo explicada. Por otro lado, un valor de R² cercano a 0 indica que el modelo no está explicando bien los datos y que la variabilidad observada es principalmente aleatoria</p>
         </div>
     </div>
     {% endif %}
