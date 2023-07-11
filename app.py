@@ -453,7 +453,7 @@ def pred():
                 ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
                 ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
                 ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
-        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}$'.format(x / 1000000)))
+        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}M'.format(x / 1000000)))
         ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         plt.tight_layout()
         # Añadir leyenda
