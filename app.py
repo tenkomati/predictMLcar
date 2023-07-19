@@ -16,7 +16,7 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import seaborn as sns
-from functions import cleanup_csv_files, round_next, load_car_models, get_marcas
+from functions import cleanup_csv_files, round_next, load_car_models, get_marcas, grafpreciohist,grafcantidadhist
 import os
 from thefuzz import fuzz
 
@@ -241,9 +241,9 @@ def pred():
         #PRECIO dolares a pesos utilizando la cotizacion dolarhoy blue
         for i,row in DBauto.iterrows():
                 x = int(row['precio'])
-                if row['moneda'] == 'USD':
-                        DBauto.at[i,'precio'] = x*dolarhoy
-                        DBauto.at[i,'moneda'] = 'ARS'
+                if row['moneda'] == 'ARS':
+                        DBauto.at[i,'precio'] = x/dolarhoy
+                        DBauto.at[i,'moneda'] = 'USD'
 
 
         #MOTOR
@@ -273,10 +273,10 @@ def pred():
         upper = q3+1.5*iqr
 
         #DB solo de los autos entre precios normales de lower y upper
-        DBautosinoutliers = DBauto[(DBauto['precio'] >= lower) & (DBauto['precio'] <= upper)]
+        DBautosinoutliers = DBauto[(DBauto['precio'] >= lower) & (DBauto['precio'] <= upper)].copy(deep=True)
 
         #Autos baratos por precio
-        DBautosbaratos = DBauto[(DBauto['precio'] < lower)]
+        DBautosbaratos = DBauto[(DBauto['precio'] < lower)].copy(deep=True)
         DBautosbaratos = DBautosbaratos[['version','motor','precio','kms','precioxkm','link']]
 
         #calculo cuantiles y iQR de PRECIO X KM
@@ -291,7 +291,7 @@ def pred():
             lower1 = q11-iqr1
 
         #Autos baratos x precioxkm
-        DBbuenprecioxkm = DBauto[(DBauto['precioxkm'] <= lower1)].sort_values(by=['precioxkm'],ascending=True)
+        DBbuenprecioxkm = DBauto[(DBauto['precioxkm'] <= lower1)].copy(deep=True).sort_values(by=['precioxkm'],ascending=True)
         DBbuenprecioxkm = DBbuenprecioxkm[['version','motor','precio','kms','precioxkm','link']]
 
         precio_mean = DBautosinoutliers['precio'].mean()
@@ -322,7 +322,7 @@ def pred():
         if tamanioDB > 10: #SI HAY MAS DE 10 RESULTADOS EN LA BUSQUEDA SE GENERAN LAS PREDICCIONES
                     
                 #GENERA UN DB NUEVO PARA MODELAR
-                Processedx = DBautosinoutliers[['motor','nafta','precio','kms','awd','manual']]
+                Processedx = DBautosinoutliers[['motor','nafta','precio','kms','awd','manual']].copy(deep=True)
 
                 X = Processedx.drop('precio',axis=1)
                 y = Processedx['precio']
@@ -422,7 +422,7 @@ def pred():
                 valor_4 = int(ypred4[0])
 
 
-                # Crear el gráfico usando Seaborn
+                # Crear el gráfico precio vs cantidad
                 sns.set(style="whitegrid")
                 ax = sns.histplot(data=DBauto,x='precio')
                 ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
@@ -447,30 +447,32 @@ def pred():
                 rmse4=0
                 r2_score4=0
                 performance=0
+                #se grafica solo las estadisticas
                 sns.set(style="whitegrid")
                 ax = sns.histplot(data=DBauto,x='precio')
                 ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
                 ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
                 ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
                 ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
+        
+        #Formateo del grafico haya o no resultados
         ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}M'.format(x / 1000000)))
         ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         plt.tight_layout()
-        # Añadir leyenda
         ax.legend(loc='upper left',bbox_to_anchor=(1, 1.1))
-
         ax.set(xlim=(lower*0.95, upper*1.05))
         plt.ylabel('Cantidad')
         plt.xlabel('Precio(en millones $)')
         plt.title(marca+" "+modelo+" "+str(anio)+" en ML")
 
-        # Mostrar el gráfico
+        # Guarda el gráfico precio vs cantidad
         sns.despine()
         temp_file = 'static/temp_file.png'
         plt.savefig(temp_file, bbox_inches='tight')
         plt.close()
     
-
+        hist1 = grafcantidadhist(marca.capitalize(),modelo.capitalize())
+        hist2 = grafpreciohist(marca.capitalize(),modelo.capitalize())
         # Render the prediction result template with the predicted price
         return render_template('result.html',
                     cantidad=cantidad,
@@ -501,12 +503,14 @@ def pred():
                     r2_score4=r2_score4,
                     plot_path=temp_file,
                     versionFREQ=versionFREQ,
-                    performance=performance, 
+                    performance=performance,
+                    hist1 = hist1,
+                    hist2 = hist2 
                     )
     else:
          return render_template('zero.html')    #UN TEMPLATE SI NO HUBO RESULTADOS
 
-# Borra los csv viejos
+# Borra los csv viejos si tienen mas de 
 cleanup_csv_files('./data/raw/')
 
 if __name__ == '__main__':

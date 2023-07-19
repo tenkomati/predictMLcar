@@ -90,3 +90,5 @@ static/*.png
 
 # Mypy cache
 .mypy_cache/
+
+funcnuevas/

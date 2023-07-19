@@ -1,7 +1,15 @@
 predictorflask
 ==============================
 
-a webapp version of predictor
+A webapp developed in Flask for predicting car prices. it uses Mercadolibre's API and four different machine learning regression models.
+
+Next I will add this:
+-Vehicle specifications: I want to bring information about the selected car, trim levels and all the relevant information.
+-Comparative analisis for same car on different years, maybe 5 year less and more.
+-Historical sales data: historical sales data of the vehicle (i need to get this via a public record or something)
+-photo of the car model:
+-most related problems of this model:
+-map of the actual offer of this model:
 
 Project Organization
 ------------

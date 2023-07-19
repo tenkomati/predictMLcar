@@ -1,8 +1,10 @@
 import os
 import time
-from datetime import datetime, timedelta
 import math
 import csv
+import matplotlib.pyplot as plt
+import seaborn as sns
+from fastparquet import ParquetFile
 
 
 def load_car_models():
@@ -56,3 +58,41 @@ def round_next(num):
     else:
         return round(num, 1)
 
+
+
+
+def grafcantidadhist(marca,modelo):
+
+    try:
+        pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
+        df= pf.to_pandas()
+    except FileNotFoundError:
+        return None
+    plt.clf()
+    sns.set()
+    ax = sns.barplot(data=df, x='año', y='cantidad')
+    ax.set_title('Cantidad x año')
+    ax.set_xticks(ax.get_xticks())
+    ax.tick_params(axis='x', rotation=90)
+    temp_file = 'static/grafcantidadhist.png'
+    plt.savefig(temp_file, bbox_inches='tight')
+    plt.close()
+    return temp_file
+
+def grafpreciohist(marca,modelo):
+    try:
+        pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
+        df= pf.to_pandas()
+    except FileNotFoundError:
+        return None
+    
+    plt.clf()
+    sns.set()
+    ax = sns.lineplot(data=df, x='año', y='precio')
+    ax.set_title('Precio promedio x año')
+    ax.set_xticks(ax.get_xticks())
+    ax.tick_params(axis='x', rotation=90)
+    temp_file = 'static/grafpreciohist.png'
+    plt.savefig(temp_file, bbox_inches='tight')
+    plt.close()
+    return temp_file
