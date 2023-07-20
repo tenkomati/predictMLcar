@@ -5,10 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300&display=swap" rel="stylesheet">
     <style>
         body {
             padding: 20px;
-            font-family: Arial, sans-serif;
+            font-family:'Montserrat', sans-serif;
             background-color: #eed130;
         }
 
@@ -78,30 +81,15 @@
     <h1>Análisis de todos los {{ marca }} {{ modelo }} {{ anio }} publicados en ML:</h1>
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Información general</h5>
-            <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
-            <p class="card-text">Unidades publicadas: {{ cantidad }}</p>
+            <h2 class="card-title">{{ cantidad }}</h2>
+            <p class="card-text">Unidades publicadas</p>
         </div>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <h5 class="card-title">Estadisticas</h5>
-            <p class="card-text">Precios (en pesos):</p>
-            <ul>
-                <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</li>
-                <li>Mediana: ${{ "{:,.0f}".format(precio_med) }}</li>
-            </ul>
-            <p class="card-text">Los precios normales están entre:</p>
-            <ul>
-                <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</li>
-                <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</li>
-            </ul>
-            <p class="card-text">La cantidad de kilómetros normales son:</p>
-            <ul>
-                <li>Promedio: {{ "{:,.0f}".format(kms_mean) }} kms</li>
-                <li>Mediana: {{ "{:,.0f}".format(kms_med) }} kms</li>
-            </ul>
+            <h2 class="card-title">${{ "{:,.0f}".format(precio_mean) }}</h2>
+            <p class="card-text">Es el valor promedio de lo publicado</p>
         </div>
     </div>
     {% if tamanioDB > 10 %}
@@ -181,6 +169,32 @@
         </div>
     </div>
     {% endif %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Mas Estadisticas</h5>
+            <p class="card-text">Precios (en dolares):</p>
+            <ul>
+                <li>Promedio: ${{ "{:,.0f}".format(precio_mean) }}</li>
+                <li>Mediana: ${{ "{:,.0f}".format(precio_med) }}</li>
+            </ul>
+            <p class="card-text">Los precios normales están entre:</p>
+            <ul>
+                <li>Límite inferior: ${{ "{:,.0f}".format(lower) }}</li>
+                <li>Límite superior: ${{ "{:,.0f}".format(upper) }}</li>
+            </ul>
+            <p class="card-text">La cantidad de kilómetros normales son:</p>
+            <ul>
+                <li>Promedio: {{ "{:,.0f}".format(kms_mean) }} kms</li>
+                <li>Mediana: {{ "{:,.0f}".format(kms_med) }} kms</li>
+            </ul>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
+        </div>
+    </div>
+
     <div class="credit">By Matias Sanchez - Version BETA 0.9</div>
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

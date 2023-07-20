@@ -69,7 +69,7 @@ def grafcantidadhist(marca,modelo,anio):
     except FileNotFoundError:
         return None
     plt.clf()
-    sns.set()
+    sns.set_style("whitegrid")
     ax = sns.barplot(data=df, x='año', y='cantidad')
     ax.set_title('Cantidad x año')
     ax.set_xticks(ax.get_xticks())
@@ -90,7 +90,7 @@ def grafpreciohist(marca,modelo,anio):
         return None
     
     plt.clf()
-    sns.set()
+    sns.set_style("whitegrid")
     ax = sns.lineplot(data=df, x='año', y='precio')
     ax.set_title('Precio promedio x año')
     ax.set_xticks(ax.get_xticks())

@@ -222,7 +222,7 @@ def pred():
     DBauto = DBauto[DBauto['año'] == int(anio)]
 
     #crea col para comparar modelo solicitado vs modelos en la busqueda
-    DBauto['m%'] = DBauto['modelo'].apply(lambda x: fuzz.ratio(x,modelo))
+    DBauto['m%'] = DBauto['modelo'].apply(lambda x: fuzz.ratio(str(x),str(modelo)))
 
     #elimina otros modelos
     DBauto = DBauto[DBauto['m%'] > 80]
@@ -318,6 +318,8 @@ def pred():
         print("Kilometros mediano {:,.0f}".format(kms_med))
 
         tamanioDB = len(DBautosinoutliers)
+        sns.set_style("whitegrid") #seteo el estilo de grafico aqui, ya que una parte está dentro del if
+        sns.color_palette("flare", as_cmap=True)
 
         if tamanioDB > 10: #SI HAY MAS DE 10 RESULTADOS EN LA BUSQUEDA SE GENERAN LAS PREDICCIONES
                     
@@ -424,9 +426,9 @@ def pred():
                 
 
                 # Crear el gráfico precio vs cantidad
-                sns.set()
+                
                 ax = sns.histplot(data=DBauto,x='precio')
-                ax.axvline(precio_mean, color='yellow', linestyle='--', label='Promedio')
+                ax.axvline(precio_mean, color='black', linestyle='--', label='Promedio')
                 ax.axvline(mediana, color='red', linestyle='-', label='Prediccion')
 
         else: #SI HAY MENOS DE 10 RESULTADOS ENTONCES NO SE GENERAN PREDICCIONES
@@ -450,7 +452,7 @@ def pred():
                 mediana = 0
         
         #Formateo del grafico haya o no resultados
-        #ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: ':,.0f'))
+        
         ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         plt.tight_layout()
         ax.legend(loc='upper left',bbox_to_anchor=(1, 1.1))
@@ -461,6 +463,7 @@ def pred():
 
         # Guarda el gráfico precio vs cantidad
         sns.despine()
+        
         temp_file = 'static/temp_file.png'
         plt.savefig(temp_file, bbox_inches='tight')
         plt.close()
