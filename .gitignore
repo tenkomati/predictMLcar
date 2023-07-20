@@ -92,3 +92,5 @@ static/*.png
 .mypy_cache/
 
 funcnuevas/
+
+*.ipynb

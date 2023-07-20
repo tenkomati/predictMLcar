@@ -420,19 +420,15 @@ def pred():
                 valor_2 = int(ypred2[0])
                 valor_3 = int(ypred3[0])
                 valor_4 = int(ypred4[0])
-
+                mediana = (valor_1 + valor_2 + valor_3 + valor_4) / 4
+                
 
                 # Crear el gráfico precio vs cantidad
-                sns.set(style="whitegrid")
+                sns.set()
                 ax = sns.histplot(data=DBauto,x='precio')
-                ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
-                ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
-                ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
-                ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
-                ax.axvline(valor_1, color='green', linestyle='-', label='TreeRegressor')
-                ax.axvline(valor_2, color='blue', linestyle='-', label='RandomForest')
-                ax.axvline(valor_3, color='purple', linestyle='-', label='KNN')
-                ax.axvline(valor_4, color='brown', linestyle='-', label='LinearRegression')
+                ax.axvline(precio_mean, color='yellow', linestyle='--', label='Promedio')
+                ax.axvline(mediana, color='red', linestyle='-', label='Prediccion')
+
         else: #SI HAY MENOS DE 10 RESULTADOS ENTONCES NO SE GENERAN PREDICCIONES
                 ypred1=[0]
                 ypred2=[0]
@@ -448,22 +444,20 @@ def pred():
                 r2_score4=0
                 performance=0
                 #se grafica solo las estadisticas
-                sns.set(style="whitegrid")
+                sns.set()
                 ax = sns.histplot(data=DBauto,x='precio')
-                ax.axvline(precio_mean, color='red', linestyle='--', label='Promedio')
-                ax.axvline(precio_med, color = 'orange', linestyle= '--', label='Mediana' )
-                ax.axvline(lower, color='orange', linestyle='--', label='Límite Inferior')
-                ax.axvline(upper, color='orange', linestyle='--', label='Límite Superior')
+                ax.axvline(precio_mean, color='red', linestyle='-', label='Promedio')
+                mediana = 0
         
         #Formateo del grafico haya o no resultados
-        ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: '{:,.1f}M'.format(x / 1000000)))
+        #ax.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, pos: ':,.0f'))
         ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         plt.tight_layout()
         ax.legend(loc='upper left',bbox_to_anchor=(1, 1.1))
         ax.set(xlim=(lower*0.95, upper*1.05))
         plt.ylabel('Cantidad')
-        plt.xlabel('Precio(en millones $)')
-        plt.title(marca+" "+modelo+" "+str(anio)+" en ML")
+        plt.xlabel('Precio(en USD)')
+        plt.title(marca.capitalize()+" - "+modelo.capitalize()+" ( "+str(anio)+" )")
 
         # Guarda el gráfico precio vs cantidad
         sns.despine()
@@ -471,8 +465,8 @@ def pred():
         plt.savefig(temp_file, bbox_inches='tight')
         plt.close()
     
-        hist1 = grafcantidadhist(marca.capitalize(),modelo.capitalize())
-        hist2 = grafpreciohist(marca.capitalize(),modelo.capitalize())
+        hist1 = grafcantidadhist(marca.capitalize(),modelo.capitalize(),int(anio))
+        hist2 = grafpreciohist(marca.capitalize(),modelo.capitalize(),int(anio))
         # Render the prediction result template with the predicted price
         return render_template('result.html',
                     cantidad=cantidad,
@@ -505,7 +499,8 @@ def pred():
                     versionFREQ=versionFREQ,
                     performance=performance,
                     hist1 = hist1,
-                    hist2 = hist2 
+                    hist2 = hist2,
+                    mediana = mediana 
                     )
     else:
          return render_template('zero.html')    #UN TEMPLATE SI NO HUBO RESULTADOS

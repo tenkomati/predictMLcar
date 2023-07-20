@@ -9,7 +9,7 @@ from fastparquet import ParquetFile
 
 def load_car_models():
     car_models = {}
-    with open('./data/modelosmarcas.csv', 'r') as csvfile:
+    with open('./data/modelosmarcas.csv', 'r',encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             marca = row[3]
@@ -23,7 +23,7 @@ def load_car_models():
 
 def get_marcas():
     marcas = []
-    with open('./data/marcas.csv', 'r') as csvfile:
+    with open('./data/marcas.csv', 'r',encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             marca = row[1]
@@ -61,7 +61,7 @@ def round_next(num):
 
 
 
-def grafcantidadhist(marca,modelo):
+def grafcantidadhist(marca,modelo,anio):
 
     try:
         pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
@@ -74,12 +74,15 @@ def grafcantidadhist(marca,modelo):
     ax.set_title('Cantidad x año')
     ax.set_xticks(ax.get_xticks())
     ax.tick_params(axis='x', rotation=90)
+    highlight_year= df.loc[df['año']==int(anio)].index[0]
+    ax.patches[highlight_year].set_facecolor('red')
+    ax.get_xticklabels()[highlight_year].set_color('red')
     temp_file = 'static/grafcantidadhist.png'
     plt.savefig(temp_file, bbox_inches='tight')
     plt.close()
     return temp_file
 
-def grafpreciohist(marca,modelo):
+def grafpreciohist(marca,modelo,anio):
     try:
         pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
         df= pf.to_pandas()
@@ -92,7 +95,12 @@ def grafpreciohist(marca,modelo):
     ax.set_title('Precio promedio x año')
     ax.set_xticks(ax.get_xticks())
     ax.tick_params(axis='x', rotation=90)
+    ax.axvline(anio, color = 'orange', linestyle= '-', label='año' )
+    precio = df.loc[df['año']== anio,'precio'].values[0]
+    plt.scatter(anio, precio, color='red', marker='o', s=100)
+    plt.annotate(f'{precio:.0f}', (anio, precio), textcoords="offset points", xytext=(-10,10), ha='right')
     temp_file = 'static/grafpreciohist.png'
     plt.savefig(temp_file, bbox_inches='tight')
     plt.close()
     return temp_file
+
