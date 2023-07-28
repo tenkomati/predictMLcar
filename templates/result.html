@@ -90,7 +90,7 @@
 
     <div class="card">
         <div class="card-body">
-            <h2 class="card-title">USD {{ "{:,.0f}".format(precio_mean) }}</h2>
+            <h3 class="card-title">USD {{ "{:,.0f}".format(precio_mean) }}</h3>
             <p class="card-text">Es el valor promedio de lo publicado</p>
         </div>
     </div>
@@ -98,8 +98,30 @@
     <div class="card">
         <div class="card-body">
             <h2 class="card-title" id="red-card-title">USD {{ "{:,.0f}".format(mediana) }}</h2>
-            <p class="card-text">Es el valor medio predecido por los 4 modelos</p>
+            <p class="card-text">Es el valor promedio predicho por los 4 modelos predictivos</p>
         </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Promedios</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ meanFuel.to_html(classes="table table-striped")|safe }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ meanMotor.to_html(classes="table table-striped")|safe }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ meanAwd.to_html(classes="table table-striped")|safe }}
+                    </div>
+                    <div class="col-md-6">    
+                        {{ meanManual.to_html(classes="table table-striped")|safe }}
+                    </div>
+                </div>
+        </div>      
     </div>
     {% else %}
     <div class="card">
@@ -128,7 +150,7 @@
     </div>
     {% endif %}
 
-    {% if not DBautosbaratos.empty and not DBbuenprecioxkm.empty %}
+    {% if not DBautosbaratos.empty or not DBbuenprecioxkm.empty %}
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Extras</h5>
@@ -150,27 +172,12 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">Versiones más publicadas</h5>
-                    {{ versionFREQ.to_html(classes="table table-striped")|safe }}
+                    {{ versionFREQ.head(5).to_html(classes="table table-striped")|safe }}
             </div>
         </div>
     {% endif %}
 
-    {% if tamanioDB > 10 %}
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Performance de cada modelo</h5>
-            <ul>
-                <li>Precio predecido con Tree Regressor: ${{ "{:,.0f}".format(ypred1) }}</li>
-                <li>Precio predecido con Random Forest Regressor: ${{ "{:,.0f}".format(ypred2) }}</li>
-                <li>Precio predecido con KNN Regressor: ${{ "{:,.0f}".format(ypred3) }}</li>
-                <li>Precio predecido con Linear Regressor: ${{ "{:,.0f}".format(ypred4) }}</li>
-            </ul>
-            {{ performance.to_html(classes="table table-striped")|safe }}
-            <p class="card-text">RMSE: El RMSE se expresa en la misma unidad que los valores de la variable objetivo y se interpreta como el error típico o la diferencia promedio entre las predicciones del modelo y los valores reales. Es una métrica comúnmente utilizada en problemas de regresión y pronóstico para evaluar la calidad y precisión del modelo.valores más bajos indican una mayor precisión y valores más altos indican una mayor discrepancia entre las predicciones y los valores reales.</p>
-            <p class="card-text">R²: Un valor de R² cercano a 1 indica un buen ajuste del modelo a los datos, lo que significa que una gran proporción de la variabilidad de la variable dependiente está siendo explicada. Por otro lado, un valor de R² cercano a 0 indica que el modelo no está explicando bien los datos y que la variabilidad observada es principalmente aleatoria</p>
-        </div>
-    </div>
-    {% endif %}
+    
     <div class="card">
         <div class="card-body">
             <h5 class="card-title">Mas Estadisticas</h5>
@@ -196,6 +203,22 @@
             <p class="card-text">Dolar Blue a la fecha: ${{ "{:,.2f}".format(dolarhoy) }}</p>
         </div>
     </div>
+    {% if tamanioDB > 10 %}
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Performance de cada modelo</h5>
+            <ul>
+                <li>Precio predecido con Tree Regressor: ${{ "{:,.0f}".format(ypred1) }}</li>
+                <li>Precio predecido con Random Forest Regressor: ${{ "{:,.0f}".format(ypred2) }}</li>
+                <li>Precio predecido con KNN Regressor: ${{ "{:,.0f}".format(ypred3) }}</li>
+                <li>Precio predecido con Linear Regressor: ${{ "{:,.0f}".format(ypred4) }}</li>
+            </ul>
+            {{ performance.to_html(classes="table table-striped")|safe }}
+            <p class="card-text">RMSE: El RMSE se expresa en la misma unidad que los valores de la variable objetivo y se interpreta como el error típico o la diferencia promedio entre las predicciones del modelo y los valores reales. Es una métrica comúnmente utilizada en problemas de regresión y pronóstico para evaluar la calidad y precisión del modelo.valores más bajos indican una mayor precisión y valores más altos indican una mayor discrepancia entre las predicciones y los valores reales.</p>
+            <p class="card-text">R²: Un valor de R² cercano a 1 indica un buen ajuste del modelo a los datos, lo que significa que una gran proporción de la variabilidad de la variable dependiente está siendo explicada. Por otro lado, un valor de R² cercano a 0 indica que el modelo no está explicando bien los datos y que la variabilidad observada es principalmente aleatoria</p>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="credit">By Matias Sanchez - Version BETA 0.9</div>
 
