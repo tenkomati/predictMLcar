@@ -91,14 +91,15 @@
     <div class="card">
         <div class="card-body">
             <h3 class="card-title">USD {{ "{:,.0f}".format(precio_mean) }}</h3>
-            <p class="card-text">Es el valor promedio de lo publicado</p>
+            <p class="card-text">Es el valor promedio de lo publicado. No se tienen en cuenta los valores extremos fuera de la distribución normal</p>
         </div>
     </div>
     {% if tamanioDB > 10 %}
     <div class="card">
         <div class="card-body">
             <h2 class="card-title" id="red-card-title">USD {{ "{:,.0f}".format(mediana) }}</h2>
-            <p class="card-text">Es el valor promedio predicho por los 4 modelos predictivos</p>
+            <p class="card-text">Es el valor promedio predicho por los 4 modelos predictivos para los siguientes valores: </p>
+            <p class="card-text">Motor: {{DPmotor}} Combustible: {{DPcombus}} Transmisión: {{DPtrans}} Tracción: {{DPtrac}} Kilometros: {{DPkms}}</p>
         </div>
     </div>
 

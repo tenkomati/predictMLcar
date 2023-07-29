@@ -150,7 +150,7 @@ def pred():
 
         #Autos baratos por precio
         DBautosbaratos = DBauto[(DBauto['precio'] < lower)].copy(deep=True)
-        DBautosbaratos = DBautosbaratos[['version','motor','precio','kms','precioxkm','link']]
+        DBautosbaratos = DBautosbaratos[['version','motor','precio','kms','precioxkm','link']].drop_duplicates(subset='link',keep='first')
 
         #calculo cuantiles y iQR de PRECIO X KM
         q11 = np.quantile(DBauto['precioxkm'],0.25)
@@ -165,7 +165,7 @@ def pred():
 
         #Autos baratos x precioxkm
         DBbuenprecioxkm = DBauto[(DBauto['precioxkm'] <= lower1)].copy(deep=True).sort_values(by=['precioxkm'],ascending=True)
-        DBbuenprecioxkm = DBbuenprecioxkm[['version','motor','precio','kms','precioxkm','link']]
+        DBbuenprecioxkm = DBbuenprecioxkm[['version','motor','precio','kms','precioxkm','link']].drop_duplicates(subset='link',keep='first')
 
         #stats 
         precio_mean = DBautosinoutliers['precio'].mean()
@@ -187,6 +187,11 @@ def pred():
         DatosPredecir.loc[0,'motor'] = DBautosinoutliers['motor'].value_counts().index[0]
         DatosPredecir.loc[0,'nafta'] = DBautosinoutliers['nafta'].value_counts().index[0]
 
+        DPtrac = '4x2' if DatosPredecir.loc[0,'awd'] == 0 else '4x4'
+        DPkms = DatosPredecir.loc[0,'kms'].astype(int)
+        DPtrans = 'Autom' if DatosPredecir.loc[0,'manual'] == 0 else 'Manual'
+        DPmotor = DatosPredecir.loc[0,'motor']
+        DPcombus = 'Diesel' if DatosPredecir.loc[0,'nafta'] == 0 else 'Nafta'
         
         tamanioDB = len(DBautosinoutliers)
         
@@ -269,7 +274,12 @@ def pred():
                     meanVersion = meanVersion,
                     meanMotor = meanMotor,
                     meanAwd = meanAwd,
-                    meanManual = meanManual
+                    meanManual = meanManual,
+                    DPtrac = DPtrac,
+                    DPcombus = DPcombus,
+                    DPkms = DPkms,
+                    DPtrans = DPtrans,
+                    DPmotor = DPmotor
                     )
     else:
          return render_template('zero.html')    #UN TEMPLATE SI NO HUBO RESULTADOS
