@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from functions import round_next, load_car_models, get_marcas, grafpreciohist,grafcantidadhist, DBauto_funcion, get_dolarhoy,modelado, grafvalorcantidad, modelado
 import os
+import re
 from thefuzz import fuzz
 from sklearn.model_selection import train_test_split
 
@@ -231,7 +232,10 @@ def pred():
             prediccion = 0
         
        
-        
+        #wik=get_wikipedia_link(marca,modelo)
+        #intro = wiki_intro(wik)
+        #primera = re.split(r"(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s", intro)[0]
+        #foto = wiki_foto(wik,f'./static/{marca}{modelo}.jpg')
        #GRAFICOS 
         grafico = grafvalorcantidad(DBautosinoutliers,precio_mean,prediccion,marca,modelo,anio)
         hist1 = grafcantidadhist(marca.capitalize(),modelo.capitalize(),int(anio))

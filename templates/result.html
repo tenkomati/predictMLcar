@@ -81,6 +81,7 @@
 </head>
 <body>
     <h1>Análisis de todos los {{ marca }} {{ modelo }} {{ anio }} publicados en ML:</h1>
+    
     <div class="card">
         <div class="card-body">
             <h2 class="card-title">{{ cantidad }}</h2>
@@ -122,6 +123,7 @@
                         {{ meanManual.to_html(classes="table table-striped")|safe }}
                     </div>
                 </div>
+                {{meanVersion.head(5).to_html(classes="table table-striped")|safe }}
         </div>      
     </div>
     {% else %}

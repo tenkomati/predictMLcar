@@ -144,7 +144,7 @@ def modelado(X_train, X_test, y_train, y_test,modelo,DatosPredecir):
 def grafcantidadhist(marca,modelo,anio):
 
     try:
-        pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
+        pf=ParquetFile('./data/histor/'+marca+modelo+'historico.parq')
         df= pf.to_pandas()
     except FileNotFoundError:
         return None
@@ -164,7 +164,7 @@ def grafcantidadhist(marca,modelo,anio):
 
 def grafpreciohist(marca,modelo,anio):
     try:
-        pf=ParquetFile('./data/raw/'+marca+modelo+'historico.parq')
+        pf=ParquetFile('./data/histor/'+marca+modelo+'historico.parq')
         df= pf.to_pandas()
     except FileNotFoundError:
         return None
@@ -283,3 +283,72 @@ def get_dolarhoy():
     dolarstr = re.search('\d+\.\d+',d).group(0)
     dolarhoy = int(float(dolarstr))
     return dolarhoy
+
+
+def get_wikipedia_link(make, model):
+    try:
+        # Format the search query to find the Wikipedia page
+        search_query = f"{make} {model} Wikipedia"
+
+        # Perform a Google search and extract the Wikipedia link
+        google_url = "https://www.google.com/search"
+        params = {"q": search_query}
+        headers = {"User-Agent": "Mozilla/5.0"}
+        response = requests.get(google_url, params=params, headers=headers)
+        response.raise_for_status()  # Raise an exception for non-200 status codes
+
+        soup = BeautifulSoup(response.text, "html.parser")
+        wikipedia_link = soup.select_one(".kCrYT > a")  # Get the first search result link
+
+        if wikipedia_link:
+            wikipedia_url = wikipedia_link.get("href").replace('/url?q=','').split('&', 1)[0]
+            return wikipedia_url
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        return None
+    except Exception as e:
+        return None
+
+def wiki_intro(url):
+    try:
+        if url:
+            response = requests.get(url)
+            response.raise_for_status()
+
+            soup = BeautifulSoup(response.text, "html.parser")
+            # Find the first paragraph of the article
+            first_paragraph = soup.find("p").text
+            return first_paragraph
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        return None
+    except Exception as e:
+        return None
+    
+def wiki_foto(url,path):
+    try:
+        if url:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "html.parser")           
+            
+            foto = 'https://es.m.wikipedia.org/'+soup.find("tbody").find_next(class_="imagen").find("a").get("href")
+            response = requests.get(foto)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text,"html.parser")
+            
+            foto_url = 'https:'+soup.find(class_='mw-filepage-other-resolutions').find('a').get('href')
+            response = requests.get(foto_url)           
+            response.raise_for_status()
+
+            with open(path, 'wb') as f:
+                f.write(response.content)
+            return path
+        else:
+            return None
+    except requests.exceptions.RequestException as e:
+        return None
+    except Exception as e:
+        return None
