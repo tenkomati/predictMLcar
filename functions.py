@@ -56,7 +56,7 @@ def fetch_data_from_mercadolibre(marca, modelo, anio):
     url = f'https://api.mercadolibre.com/sites/MLA/search?q={marca}%20{modelo}%20{anio}&category=MLA1743&id=MLA1744'
     payload = {}
     headers = {
-        'Authorization': f'Bearer {access_token}'
+        #'Authorization': f'Bearer {access_token}'
     }
 
     with requests.Session() as session:
