@@ -22,7 +22,34 @@ import re
 import json
 
 #FUNCIONES PRINCIPALES
-def fetch_data_from_mercadolibre(marca, modelo, anio, access_token):
+def fetch_data_from_mercadolibre(marca, modelo, anio):
+
+    #get new access token
+    '''
+    import requests
+
+    REFRESH_TOKEN = 'TG-6668d55dc99e680001f86aba-224513779' #modificar cada vez que se usa el codigo para obtener un nuevo access token
+
+    url = 'https://api.mercadolibre.com/oauth/token'
+    headers = {
+        'accept': 'application/json',
+        'content-type': 'application/x-www-form-urlencoded'
+    }
+    data = {
+        'grant_type': 'refresh_token',
+        'client_id': '6430134644561184',
+        'client_secret': 'hNEdFlu3yRFPp8YxcoRGwGkB67cUD3Dd',
+        'refresh_token': REFRESH_TOKEN
+    }
+
+    response = requests.post(url, headers=headers, data=data)
+    response.json().get('access_token')
+    response.json().get('refresh_token')
+    '''
+    access_token = 'APP_USR-6430134644561184-061118-cf4b789475335d3a43ba510e8a021632-224513779'
+    
+
+
     url = f'https://api.mercadolibre.com/sites/MLA/search?q={marca}%20{modelo}%20{anio}&category=MLA1743&id=MLA1744'
     payload = {}
     headers = {

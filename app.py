@@ -35,8 +35,10 @@ def pred():
     modelo = str(request.form['model']).lower().strip()
     anio = request.form['year']
 
+
+
 #API REQUEST y Obtencion de datos a dataframe
-    DBauto = DBauto_funcion(marca,modelo,anio,'APP_USR-1735483845190568-052521-4e03162aa48b46d277ba15d55d6a2357-224513779')
+    DBauto = DBauto_funcion(marca,modelo,anio)
     
     #Obtener valor del dolar del dia
     dolarhoy = get_dolarhoy()
