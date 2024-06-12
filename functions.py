@@ -21,32 +21,35 @@ from sklearn.linear_model import LinearRegression
 import re
 import json
 
+#get new access token
+'''
+import requests
+
+REFRESH_TOKEN = 'TG-6668d55dc99e680001f86aba-224513779' #modificar cada vez que se usa el codigo para obtener un nuevo access token
+
+url = 'https://api.mercadolibre.com/oauth/token'
+headers = {
+    'accept': 'application/json',
+    'content-type': 'application/x-www-form-urlencoded'
+}
+data = {
+    'grant_type': 'refresh_token',
+    'client_id': '6430134644561184',
+    'client_secret': 'hNEdFlu3yRFPp8YxcoRGwGkB67cUD3Dd',
+    'refresh_token': REFRESH_TOKEN
+}
+
+response = requests.post(url, headers=headers, data=data)
+response.json().get('access_token')
+response.json().get('refresh_token')
+'''
+access_token = 'APP_USR-6430134644561184-061118-cf4b789475335d3a43ba510e8a021632-224513779'
+
+
 #FUNCIONES PRINCIPALES
 def fetch_data_from_mercadolibre(marca, modelo, anio):
 
-    #get new access token
-    '''
-    import requests
 
-    REFRESH_TOKEN = 'TG-6668d55dc99e680001f86aba-224513779' #modificar cada vez que se usa el codigo para obtener un nuevo access token
-
-    url = 'https://api.mercadolibre.com/oauth/token'
-    headers = {
-        'accept': 'application/json',
-        'content-type': 'application/x-www-form-urlencoded'
-    }
-    data = {
-        'grant_type': 'refresh_token',
-        'client_id': '6430134644561184',
-        'client_secret': 'hNEdFlu3yRFPp8YxcoRGwGkB67cUD3Dd',
-        'refresh_token': REFRESH_TOKEN
-    }
-
-    response = requests.post(url, headers=headers, data=data)
-    response.json().get('access_token')
-    response.json().get('refresh_token')
-    '''
-    access_token = 'APP_USR-6430134644561184-061118-cf4b789475335d3a43ba510e8a021632-224513779'
     
 
 
@@ -85,9 +88,9 @@ def extract_attributes(attributes):
 
     return extracted_attributes
 
-def DBauto_funcion(marca, modelo, anio, access_token):
+def DBauto_funcion(marca, modelo, anio):
     try:
-        api_response = fetch_data_from_mercadolibre(marca, modelo, anio, access_token)
+        api_response = fetch_data_from_mercadolibre(marca, modelo, anio)
     except requests.exceptions.RequestException as e:
         raise Exception(f'Error fetching data from MercadoLibre API: {e}')
 
@@ -114,7 +117,7 @@ def DBauto_funcion(marca, modelo, anio, access_token):
     if total_results > 50:
         for x in range(1, int((total_results / 50) + 1)):
             try:
-                api_response = fetch_data_from_mercadolibre(marca, modelo, anio, access_token)
+                api_response = fetch_data_from_mercadolibre(marca, modelo, anio)
             except requests.exceptions.RequestException as e:
                 print(f'Error fetching data from MercadoLibre API: {e}')
                 continue
